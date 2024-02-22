@@ -1,4 +1,4 @@
-const userModel = require("../models/UserModel");
+const userModel = require ("../models/UserModel");
 const noteModel = require("../models/NotesModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -41,7 +41,7 @@ exports.createNoteController = async (req, res) => {
     const { title, content, user } = req.body;
     const existingUser = await userModel.findById(user);
     if (!existingUser) {
-      return res.status(404).send({
+      return res.status(202).send({
         success: false,
         message: "Unable to find user",
       });
@@ -56,7 +56,6 @@ exports.createNoteController = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     await newNote.save({ session });
-    //  console.log(existingUser , existingUser.blogs);
     existingUser.notes.push(newNote);
     await existingUser.save({ session });
     await session.commitTransaction();
@@ -64,8 +63,8 @@ exports.createNoteController = async (req, res) => {
     await newNote.save();
     return res.status(200).send({
       success: true,
-      message: "Successfully Created blog",
-      newNote,
+      message: "Successfully Created note",
+      data:newNote,
     });
   } catch (error) {
     console.log(error);
@@ -93,10 +92,9 @@ exports.updateController = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "Note Updated Successfully",
-      note,
+      data:note,
     });
   } catch (error) {
-    console.log(error);
     return res.status(501).send({
       success: false,
       message: "Error while updating Note",
@@ -107,7 +105,6 @@ exports.updateController = async (req, res) => {
 exports.deleteController = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("heyyyy");
     const note = await noteModel.findOneAndDelete(id).populate("user");
     if (!note) {
       return res.status(501).send({
@@ -121,9 +118,10 @@ exports.deleteController = async (req, res) => {
     return res.status(200).send({
       success: true,
       message: "Note Deleted",
+      data:note
     });
   } catch (error) {
-    console.log(error);
+   
     return res.status(501).send({
       success: false,
       message: "Error while deleting Note",
@@ -146,13 +144,12 @@ exports.archiveController = async (req, res) => {
         message: "Note doesn't exists",
       });
     }
-    console.log(note);
     return res.status(200).send({
       success: true,
       message: "Archived Successfully",
+      note
     });
   } catch (error) {
-    console.log(error);
     return res.status(501).send({
       success: false,
       message: "Error while archiving Note",
@@ -185,7 +182,6 @@ exports.getArchiveNotesController = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log(error);
     return res.status(501).send({
       success: false,
       message: "Error while getting archived Note",
@@ -219,7 +215,6 @@ exports.unarchivedController = async (req, res) => {
       message: "Successfully unarchived Note",
     });
   } catch (error) {
-    console.log(error);
     return res.status(501).send({
       success: false,
       message: "Error while unarchiving Note",
@@ -229,11 +224,8 @@ exports.unarchivedController = async (req, res) => {
 
 exports.searchController = async (req, res) => {
   try {
-    console.log(req.query);
     const { q } = req.query;
     const { user } = req.body;
-    console.log(user);
-    console.log(q, typeof q);
 
     const searched_notes = await noteModel.find({
       $and: [
@@ -247,7 +239,6 @@ exports.searchController = async (req, res) => {
       ],
     });
 
-    console.log(searched_notes);
     if (!searched_notes) {
       return res.status(500).send({
         success: false,
@@ -261,7 +252,6 @@ exports.searchController = async (req, res) => {
       searched_notes,
     });
   } catch (error) {
-    console.log(error);
     return res.status(501).send({
       success: false,
       message: "Error while searching Note",

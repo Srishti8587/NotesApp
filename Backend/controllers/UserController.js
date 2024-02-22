@@ -32,7 +32,8 @@ exports.createController= async (req,res) => {
         const existingUser = await userModel.findOne({email});
         if(existingUser)
         {
-            return res.status(401).send({
+            console.log("already existing");
+            return res.status(202).send({
                 success:false,
                 message:"User already exists"
             })
@@ -43,6 +44,7 @@ exports.createController= async (req,res) => {
         //save user
         const user=new userModel({username,email,password :hashPassword});
         await user.save();
+        console.log("New user created");
         return res.status(200).send({
             success:true,
             message:"New User Created",
@@ -66,10 +68,9 @@ try{
     const {email,password} = req.body;
     // if user doesn't exists
     const user = await userModel.findOne({email});
-    console.log(user);
     if(!user)
     {
-        return res.status(501).send({
+        return res.status(202).send({
             success:false,
             message:"User doesn't exists"
         })
@@ -77,7 +78,7 @@ try{
     const isMatch =await bcrypt.compare(password,user.password);
     if(!isMatch)
     {
-        return res.status(501).send({
+        return res.status(202).send({
             success:false,
             message:"Invalid Username or Password"
         });
@@ -87,7 +88,7 @@ try{
         expiresIn:process.env.expiresIn
     }
     const Token = jwt.sign({userId:user._id},process.env.SECRET_KEY,options);
-    console.log(user._id,"hey");
+    console.log(user._id);
     return res.status(200).send({
         success:true,
         message :"Login Succesfully!!",
